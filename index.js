@@ -38,7 +38,7 @@ export const getPixels = () => new Promise((resolve, reject) => {
   });
 });
 
-export const cropImage = (crop) => new Promise((resolve, reject) => {
+export const getImage = (crop) => new Promise((resolve, reject) => {
   pixelColor.cropImage(crop, (err, res) => {
     if (err) {
       return reject(err);
@@ -51,5 +51,5 @@ export default {
   setImage,
   pickColorAt,
   getPixels,
-  cropImage,
+  getImage,
 };
