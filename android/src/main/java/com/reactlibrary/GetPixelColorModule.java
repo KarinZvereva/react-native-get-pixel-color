@@ -1,6 +1,9 @@
 package com.reactlibrary;
 
-import android.net.Uri;
+import android.graphics.Canvas;
+import android.graphics.PointF;
+import android.graphics.Rect;
+import android.media.FaceDetector;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -10,16 +13,14 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.bridge.WritableNativeMap;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
+// source https://github.com/QuadFlask/smartcrop-android
 public class GetPixelColorModule extends ReactContextBaseJavaModule {
     private final ReactApplicationContext reactContext;
     private Bitmap bitmap;
@@ -42,8 +43,8 @@ public class GetPixelColorModule extends ReactContextBaseJavaModule {
             final byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
             this.bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
 
-            Bitmap newBitmap = this.analyze(this.bitmap);
-            String result = this.convertToBase64(newBitmap);
+            CropResult newBitmap = this.analyze(this.bitmap);
+            String result = this.convertToBase64(newBitmap.resultImage);
 
             callback.invoke(null, result);
         } catch (Exception e) {
@@ -64,61 +65,6 @@ public class GetPixelColorModule extends ReactContextBaseJavaModule {
             result.pushInt(red);
             result.pushInt(green);
             result.pushInt(blue);
-
-            callback.invoke(null, result);
-        } catch (Exception e) {
-            callback.invoke(e.getMessage());
-        }
-    }
-
-    @ReactMethod
-    public void cropImage(ReadableMap crop, Callback callback) {
-        try {
-            final int width = crop.getInt("width");
-            final int height = crop.getInt("height");
-            final int x = crop.getInt("x");
-            final int y = crop.getInt("y");
-            System.out.println("X: " + x + "   Y: " + y);
-            System.out.println(width + " " + height);
-
-            Bitmap newBitmap = Bitmap.createBitmap(this.bitmap, x, y, width, height);
-            String result = this.convertToBase64(newBitmap);
-
-            callback.invoke(null, result);
-        } catch (Exception e) {
-            callback.invoke(e.getMessage());
-        }
-    }
-
-    @ReactMethod
-    public void getPixels(Callback callback) {
-        try {
-            final int width = this.bitmap.getWidth();
-            final int height = this.bitmap.getHeight();
-            System.out.println("width: " + width + " height: " + height);
-
-            final WritableMap result = new WritableNativeMap();
-            final WritableArray data = new WritableNativeArray();
-
-            for (int x = 0; x < height; x++) {
-                for (int y = 0; y < width; y++) {
-
-                    final int pixel = this.bitmap.getPixel(y,x);
-
-                    final int red = Color.red(pixel);
-                    final int green = Color.green(pixel);
-                    final int blue = Color.blue(pixel);
-                    final int alpha = Color.alpha(pixel);
-
-                    data.pushInt(red);
-                    data.pushInt(green);
-                    data.pushInt(blue);
-                    data.pushInt(alpha);
-                }
-            }
-            result.putInt("width", width);
-            result.putInt("height", height);
-            result.putArray("data", data);
 
             callback.invoke(null, result);
         } catch (Exception e) {
@@ -148,7 +94,6 @@ public class GetPixelColorModule extends ReactContextBaseJavaModule {
         output.setPixels(outputI.getRGB(), 0, input.getWidth(), 0, 0, input.getWidth(), input.getHeight());
 
         Bitmap score = Bitmap.createBitmap(input.getWidth() / options.getScoreDownSample(), input.getHeight() / options.getScoreDownSample(), options.getBitmapConfig());
-//        new Canvas(score).drawBitmap(output, new Rect(0, 0, output.getWidth(), output.getHeight()), new Rect(0, 0, score.getWidth(), score.getHeight()), null);
         Image scoreI = new Image(score);
 
         float topScore = Float.NEGATIVE_INFINITY;
@@ -169,11 +114,6 @@ public class GetPixelColorModule extends ReactContextBaseJavaModule {
 
         CropResult result = CropResult.newInstance(topCrop, crops, output, createCrop(input, topCrop));
 
-//        if (topCrop != null) {
-//            Canvas outputCanvas = new Canvas(output);
-//            outputCanvas.drawRect(new Rect(topCrop.x, topCrop.y, topCrop.x + topCrop.width - 1, topCrop.y + topCrop.height - 1), DEBUG_TOP_CROP_RECT_PAINT);
-//        }
-
         return result;
     }
 
@@ -187,7 +127,7 @@ public class GetPixelColorModule extends ReactContextBaseJavaModule {
         int tw = options.getCropWidth();
         int th = options.getCropHeight();
         Bitmap image = Bitmap.createBitmap(tw, th, options.getBitmapConfig());
-//        new Canvas(image).drawBitmap(input, new Rect(crop.x, crop.y, crop.x + crop.width, crop.y + crop.height), new Rect(0, 0, tw, th), null);
+        new Canvas(image).drawBitmap(input, new Rect(crop.x, crop.y, crop.x + crop.width, crop.y + crop.height), new Rect(0, 0, tw, th), null);
         return image;
     }
 

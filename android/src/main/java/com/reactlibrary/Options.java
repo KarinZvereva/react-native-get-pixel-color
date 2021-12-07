@@ -8,8 +8,8 @@ import android.graphics.Bitmap;
 public class Options {
     public static final Options DEFAULT = new Options();
 
-    protected int cropWidth = 100;
-    protected int cropHeight = 100;
+    protected int cropWidth = 500;
+    protected int cropHeight = 500;
     protected float detailWeight = .2f;
     protected float[] skinColor = {0.7f, 0.57f, 0.44f};
     protected float skinBias = .01f;

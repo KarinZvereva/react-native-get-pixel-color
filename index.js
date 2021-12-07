@@ -9,13 +9,13 @@ const rgb2hex = rgb => {
 
 const pixelColor = Platform.OS === 'ios' ? NativeModules.RNPixelColor : NativeModules.GetPixelColor;
 
-export const setImage = (path) => new Promise((resolve, reject) => {
-  pixelColor.init(path, (err, isSet) => {
+export const getCroppedImage = (base64) => new Promise((resolve, reject) => {
+  pixelColor.init(base64, (err, result) => {
     if (err) {
       return reject(err);
     }
-    if (isSet) {
-      resolve('Image sucessfully set');
+    if (result) {
+      resolve(result);
     }
   });
 });
@@ -29,27 +29,8 @@ export const pickColorAt = (x, y) => new Promise((resolve, reject) => {
   });
 });
 
-export const getPixels = () => new Promise((resolve, reject) => {
-  pixelColor.getPixels((err, res) => {
-    if (err) {
-      return reject(err);
-    }
-    resolve(res);
-  });
-});
-
-export const getImage = (crop) => new Promise((resolve, reject) => {
-  pixelColor.cropImage(crop, (err, res) => {
-    if (err) {
-      return reject(err);
-    }
-    resolve(res);
-  });
-});
 
 export default {
-  setImage,
+  getCroppedImage,
   pickColorAt,
-  getPixels,
-  getImage,
 };
